@@ -1,0 +1,17 @@
+[
+  {
+    "name": "Local Benchmarks",
+    "samples": [
+      {
+        "name": "Play MP3 Sample",
+        "uri": "https://freemusicarchive.org/music/download/b96a54cd6493df22ca864d5c228d42d23246f4fa",
+        "localname": "eigenvalue_subspace_decomposition.mp3"
+      },
+      {
+        "name": "Play H264 Big Buck Bunny (1080p)",
+        "uri": "http://distribution.bbb3d.renderfarming.net/video/mp4/bbb_sunflower_1080p_30fps_normal.mp4",
+        "localname": "bbb1080p.mp4"
+      }
+    ]
+  }
+]

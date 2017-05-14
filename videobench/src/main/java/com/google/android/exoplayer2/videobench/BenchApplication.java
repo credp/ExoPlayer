@@ -33,7 +33,7 @@ public class BenchApplication extends Application {
   @Override
   public void onCreate() {
     super.onCreate();
-    userAgent = Util.getUserAgent(this, "ExoPlayerVideoBench");
+    userAgent = Util.getUserAgent(this, "ExoPlayer2");
   }
 
   public DataSource.Factory buildDataSourceFactory(DefaultBandwidthMeter bandwidthMeter) {

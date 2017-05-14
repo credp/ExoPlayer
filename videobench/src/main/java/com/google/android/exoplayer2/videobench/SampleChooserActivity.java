@@ -69,7 +69,7 @@ public class SampleChooserActivity extends Activity {
       AssetManager assetManager = getAssets();
       try {
         for (String asset : assetManager.list("")) {
-          if (asset.endsWith(".exolist.json")) {
+          if (asset.endsWith(".videobenchmark.json")) {
             uriList.add("asset:///" + asset);
           }
         }
@@ -182,8 +182,10 @@ public class SampleChooserActivity extends Activity {
       UUID drmUuid = null;
       String drmLicenseUrl = null;
       String[] drmKeyRequestProperties = null;
+      String localname = null;
       boolean preferExtensionDecoders = false;
       ArrayList<UriSample> playlistSamples = null;
+      ArrayList<UriSample> benchmarkSamples = null;
 
       reader.beginObject();
       while (reader.hasNext()) {
@@ -191,6 +193,9 @@ public class SampleChooserActivity extends Activity {
         switch (name) {
           case "name":
             sampleName = reader.nextString();
+            break;
+          case "localname":
+            localname = reader.nextString();
             break;
           case "uri":
             uri = reader.nextString();
@@ -245,8 +250,11 @@ public class SampleChooserActivity extends Activity {
         return new PlaylistSample(sampleName, drmUuid, drmLicenseUrl, drmKeyRequestProperties,
             preferExtensionDecoders, playlistSamplesArray);
       } else {
-        return new UriSample(sampleName, drmUuid, drmLicenseUrl, drmKeyRequestProperties,
-            preferExtensionDecoders, uri, extension);
+          if (localname == null)
+            return new UriSample(sampleName, drmUuid, drmLicenseUrl, drmKeyRequestProperties,
+                preferExtensionDecoders, uri, extension);
+          else
+              return new LocalSample(sampleName, uri, localname);
       }
     }
 
@@ -421,6 +429,36 @@ public class SampleChooserActivity extends Activity {
 
   }
 
+  private static final class LocalSample extends Sample {
+
+    public final String uri;
+    public final String localname;
+
+    public LocalSample(String name, String uri,
+                       String localname) {
+        super(name, null, null, null, false);
+        this.uri = uri;
+        this.localname = localname;
+    }
+
+    @Override
+    public Intent buildIntent(Context context) {
+        String fq_localname = BackgroundDownloadTask.getLocalName(localname);
+        java.io.File file = new java.io.File(fq_localname);
+        if (file.exists())
+            return super.buildIntent(context)
+                    .setData(Uri.parse(uri))
+                    .putExtra(PlayerActivity.LOCAL_NAME, localname)
+                    .setAction(PlayerActivity.ACTION_VIEW);
+        else {
+          Intent intent = new Intent(context, DownloadActivity.class);
+          intent.setData(Uri.parse(uri));
+          intent.putExtra(DownloadActivity.LOCAL_NAME, localname);
+          intent.setAction(DownloadActivity.ACTION_DOWNLOAD);
+          return intent;
+        }
+    }
+  }
   private static final class PlaylistSample extends Sample {
 
     public final UriSample[] children;
@@ -447,5 +485,4 @@ public class SampleChooserActivity extends Activity {
     }
 
   }
-
 }

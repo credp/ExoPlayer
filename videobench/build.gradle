@@ -18,7 +18,7 @@ android {
     buildToolsVersion project.ext.buildToolsVersion
 
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion 21
         targetSdkVersion project.ext.targetSdkVersion
     }
 
@@ -54,4 +54,6 @@ dependencies {
     withExtensionsCompile project(path: ':extension-flac')
     withExtensionsCompile project(path: ':extension-opus')
     withExtensionsCompile project(path: ':extension-vp9')
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support.constraint:constraint-layout:+'
 }

@@ -92,6 +92,9 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
       "com.google.android.exoplayer.videobench.action.VIEW_LIST";
   public static final String URI_LIST_EXTRA = "uri_list";
   public static final String EXTENSION_LIST_EXTRA = "extension_list";
+  public static final String LOCAL_NAME = "local_name";
+  public static final String ACTION_DOWNLOAD =
+          "com.google.android.exoplayer.videobench.action.DOWNLOAD";
 
   private static final DefaultBandwidthMeter BANDWIDTH_METER = new DefaultBandwidthMeter();
   private static final CookieManager DEFAULT_COOKIE_MANAGER;
@@ -298,6 +301,11 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
         if (extensions == null) {
           extensions = new String[uriStrings.length];
         }
+      } else if (ACTION_DOWNLOAD.equals(action)) {
+        String filename = intent.hasExtra(LOCAL_NAME) ? intent.getStringExtra(LOCAL_NAME) :
+                "no local name configured";
+        showToast("download_action_not_in_player for file "+filename);
+        return;
       } else {
         showToast(getString(R.string.unexpected_intent_action, action));
         return;
