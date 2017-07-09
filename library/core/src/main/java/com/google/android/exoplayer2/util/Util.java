@@ -151,6 +151,32 @@ public final class Util {
   }
 
   /**
+   * Checks whether it's necessary to request the {@link permission#READ_EXTERNAL_STORAGE}
+   * permission read the specified {@link Uri}s, requesting the permission if necessary.
+   *
+   * @param activity The host activity for checking and requesting the permission.
+   * @param uris {@link Uri}s that may require {@link permission#READ_EXTERNAL_STORAGE} to read.
+   * @return Whether a permission request was made.
+   */
+  @TargetApi(23)
+  public static boolean maybeRequestWriteExternalStoragePermission(Activity activity, Uri... uris) {
+    if (Util.SDK_INT < 23) {
+      return false;
+    }
+    for (Uri uri : uris) {
+      if (Util.isLocalFileUri(uri)) {
+        if (activity.checkSelfPermission(permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+          activity.requestPermissions(new String[] {permission.WRITE_EXTERNAL_STORAGE}, 0);
+          return true;
+        }
+        break;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Returns true if the URI is a path to a local file or a reference to a local file.
    *
    * @param uri The uri to test.

@@ -29,6 +29,8 @@ class BackgroundDownloadTask extends AsyncTask<String, String, String> {
         eStopped
     };
 
+    private static BackgroundDownloadTask singleton = new BackgroundDownloadTask();
+    private BackgroundDownloadTask() { }
     private String tag="BgDlTsk";
     public URL fetch_URL;
     public int expected_size;
@@ -36,6 +38,9 @@ class BackgroundDownloadTask extends AsyncTask<String, String, String> {
     public Status status;
     public Boolean stop=false;
 
+    public static BackgroundDownloadTask getInstance( ) {
+        return singleton;
+    }
     /**
      * Before starting background thread
      * */
@@ -55,6 +60,8 @@ class BackgroundDownloadTask extends AsyncTask<String, String, String> {
         Log.d("getLocalName", "FQ is "+file.toString());
         return file.toString();
     }
+
+
 
     /**
      * Downloading file in background thread

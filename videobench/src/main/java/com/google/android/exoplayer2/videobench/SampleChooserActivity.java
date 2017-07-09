@@ -16,12 +16,16 @@
 package com.google.android.exoplayer2.videobench;
 
 import android.app.Activity;
+import android.app.DownloadManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.AssetManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.JsonReader;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -40,6 +44,8 @@ import com.google.android.exoplayer2.upstream.DataSpec;
 import com.google.android.exoplayer2.upstream.DefaultDataSource;
 import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.Util;
+
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -54,7 +60,8 @@ import java.util.UUID;
 public class SampleChooserActivity extends Activity {
 
   private static final String TAG = "SampleChooserActivity";
-
+  private int playGIdx = -1;
+  private int playSIdx = 0;
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -62,7 +69,19 @@ public class SampleChooserActivity extends Activity {
     Intent intent = getIntent();
     String dataUri = intent.getDataString();
     String[] uris;
-    if (dataUri != null) {
+    /* add some parsing here to allow direct trigger of sample by index */
+    String playlistUri = null;
+    if(dataUri != null && dataUri.startsWith("play:")) {
+          // number after play is the index into the sample list to play.
+          String[] parts = dataUri.split("[ :]")[1].split("[,]");
+          playGIdx = Integer.parseInt(parts[0]);
+          playSIdx = Integer.parseInt(parts[1]);
+        Log.i(TAG, "Asked to play group "+playGIdx+" and sample "+playSIdx);
+
+    } else{
+      playlistUri = dataUri;
+    }
+    if (playlistUri != null) {
       uris = new String[] {dataUri};
     } else {
       ArrayList<String> uriList = new ArrayList<>();
@@ -83,6 +102,9 @@ public class SampleChooserActivity extends Activity {
     }
     SampleListLoader loaderTask = new SampleListLoader();
     loaderTask.execute(uris);
+    if (playGIdx >= 0) {
+        // play group playGIdx and sample playSIdx.
+    }
   }
 
   private void onSampleGroups(final List<SampleGroup> groups, boolean sawError) {
@@ -100,6 +122,11 @@ public class SampleChooserActivity extends Activity {
         return true;
       }
     });
+    // auto start if requested at launch
+    if (playGIdx != -1) {
+        Sample sample = groups.get(playGIdx).samples.get(playSIdx);
+        startActivity(sample.buildIntent(this));
+    }
   }
 
   private void onSampleSelected(Sample sample) {
@@ -433,6 +460,7 @@ public class SampleChooserActivity extends Activity {
 
     public final String uri;
     public final String localname;
+    private Intent intent;
 
     public LocalSample(String name, String uri,
                        String localname) {
@@ -441,23 +469,57 @@ public class SampleChooserActivity extends Activity {
         this.localname = localname;
     }
 
-    @Override
-    public Intent buildIntent(Context context) {
-        String fq_localname = BackgroundDownloadTask.getLocalName(localname);
-        java.io.File file = new java.io.File(fq_localname);
-        if (file.exists())
-            return super.buildIntent(context)
-                    .setData(Uri.parse(uri))
-                    .putExtra(PlayerActivity.LOCAL_NAME, localname)
-                    .setAction(PlayerActivity.ACTION_VIEW);
-        else {
-          Intent intent = new Intent(context, DownloadActivity.class);
-          intent.setData(Uri.parse(uri));
-          intent.putExtra(DownloadActivity.LOCAL_NAME, localname);
-          intent.setAction(DownloadActivity.ACTION_DOWNLOAD);
-          return intent;
-        }
+    // turn a filename into the local cache equivalent
+    static String getLocalName(String localname) {
+        String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath();
+        Log.d("getLocalName", "PublicDir is "+path);
+        File file = new File(path, localname);
+        Log.d("getLocalName", "FQ is "+file.toString());
+        return file.toString();
     }
+
+    public boolean uriReady(Context context) {
+        String local_uri = Uri.fromFile(new java.io.File(getLocalName(localname))).toString();
+        DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
+        DownloadManager.Query query = new DownloadManager.Query();
+        Cursor cursor = downloadManager.query(query);
+        Log.i(TAG, "Looking for "+local_uri);
+        while (cursor.moveToNext()) {
+            int nameCol = cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI);
+            String name = cursor.getString(nameCol);
+            int idCol = cursor.getColumnIndex(DownloadManager.COLUMN_ID);
+            long id = cursor.getLong(idCol);
+            Log.i(TAG, "downloadmanager has "+name+" as "+id);
+            if (name.equals(local_uri)) {
+                Log.i(TAG, "found file");
+                int statusCol = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
+                int status = cursor.getInt(statusCol);
+                if (status == DownloadManager.STATUS_SUCCESSFUL)
+                    return true;
+                break;
+            }
+        }
+        return false;
+    }
+      @Override
+    public Intent buildIntent(Context context) {
+          if (!uriReady(context)) {
+              // start the download
+              intent = new Intent(context, DownloadActivity.class);
+              intent.setData(Uri.parse(uri));
+              intent.putExtra(DownloadActivity.LOCAL_NAME, localname);
+              intent.putExtra(DownloadActivity.URI, uri);
+              intent.setAction(DownloadActivity.ACTION_DOWNLOAD);
+              Log.i(TAG, "downloading uri=" + uri + " localname=" + localname);
+              return intent;
+          } else {
+                Log.i(TAG, "playing " + localname);
+                return super.buildIntent(context)
+                        .setData(Uri.parse(uri))
+                        .putExtra(PlayerActivity.LOCAL_NAME, localname)
+                        .setAction(PlayerActivity.ACTION_VIEW_LOCAL);
+          }
+      }
   }
   private static final class PlaylistSample extends Sample {
 

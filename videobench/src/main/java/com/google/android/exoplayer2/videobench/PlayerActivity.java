@@ -69,6 +69,8 @@ import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.upstream.HttpDataSource;
 import com.google.android.exoplayer2.util.Util;
+
+import java.io.File;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
@@ -86,6 +88,7 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
   public static final String PREFER_EXTENSION_DECODERS = "prefer_extension_decoders";
 
   public static final String ACTION_VIEW = "com.google.android.exoplayer.videobench.action.VIEW";
+  public static final String ACTION_VIEW_LOCAL = "com.google.android.exoplayer.videobench.action.VIEW_LOCAL";
   public static final String EXTENSION_EXTRA = "extension";
 
   public static final String ACTION_VIEW_LIST =
@@ -301,16 +304,21 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
         if (extensions == null) {
           extensions = new String[uriStrings.length];
         }
-      } else if (ACTION_DOWNLOAD.equals(action)) {
-        String filename = intent.hasExtra(LOCAL_NAME) ? intent.getStringExtra(LOCAL_NAME) :
-                "no local name configured";
-        showToast("download_action_not_in_player for file "+filename);
-        return;
+      } else if (ACTION_VIEW_LOCAL.equals(action)) {
+        if (intent.hasExtra(LOCAL_NAME)) {
+          extensions = new String[] {intent.getStringExtra(EXTENSION_EXTRA)};
+          String filename = intent.getStringExtra(LOCAL_NAME);
+          File fq_filename = new File(BackgroundDownloadTask.getLocalName(filename));
+          uris = new Uri[] { Uri.fromFile(fq_filename) };
+        } else {
+          showToast("Error: No local file");
+          return;
+        }
       } else {
         showToast(getString(R.string.unexpected_intent_action, action));
         return;
       }
-      if (Util.maybeRequestReadExternalStoragePermission(this, uris)) {
+      if (Util.maybeRequestWriteExternalStoragePermission(this, uris)) {
         // The player will be reinitialized if the permission is granted.
         return;
       }
