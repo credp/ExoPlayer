@@ -469,17 +469,8 @@ public class SampleChooserActivity extends Activity {
         this.localname = localname;
     }
 
-    // turn a filename into the local cache equivalent
-    static String getLocalName(String localname) {
-        String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath();
-        Log.d("getLocalName", "PublicDir is "+path);
-        File file = new File(path, localname);
-        Log.d("getLocalName", "FQ is "+file.toString());
-        return file.toString();
-    }
-
     public boolean uriReady(Context context) {
-        String local_uri = Uri.fromFile(new java.io.File(getLocalName(localname))).toString();
+        String local_uri = Uri.fromFile(new java.io.File(Utilities.getLocalName(localname))).toString();
         DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
         DownloadManager.Query query = new DownloadManager.Query();
         Cursor cursor = downloadManager.query(query);

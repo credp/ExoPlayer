@@ -308,7 +308,7 @@ public class PlayerActivity extends Activity implements OnClickListener, ExoPlay
         if (intent.hasExtra(LOCAL_NAME)) {
           extensions = new String[] {intent.getStringExtra(EXTENSION_EXTRA)};
           String filename = intent.getStringExtra(LOCAL_NAME);
-          File fq_filename = new File(BackgroundDownloadTask.getLocalName(filename));
+          File fq_filename = new File(Utilities.getLocalName(filename));
           uris = new Uri[] { Uri.fromFile(fq_filename) };
         } else {
           showToast("Error: No local file");

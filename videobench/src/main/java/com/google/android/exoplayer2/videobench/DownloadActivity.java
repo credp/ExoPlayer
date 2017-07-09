@@ -61,7 +61,7 @@ public class DownloadActivity extends Activity {
         localname = intent.getStringExtra(LOCAL_NAME);
         uri = Uri.parse(intent.getStringExtra(URI));
         downloadID = -1;
-        fq_localname = getLocalName(localname);
+        fq_localname = Utilities.getLocalName(localname);
         downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
         pref = getSharedPreferences("VideoBenchmarkFiles", MODE_PRIVATE);
         handler = new Handler();
@@ -187,14 +187,6 @@ public class DownloadActivity extends Activity {
         SharedPreferences.Editor ed = pref.edit();
         ed.putLong(localname,status);
         ed.apply();
-    }
-    // turn a filename into the local cache equivalent
-    static String getLocalName(String localname) {
-        String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath();
-        Log.d("getLocalName", "PublicDir is "+path);
-        File file = new File(path, localname);
-        Log.d("getLocalName", "FQ is "+file.toString());
-        return file.toString();
     }
 
     protected void startDownload() {
