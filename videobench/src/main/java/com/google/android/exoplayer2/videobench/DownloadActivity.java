@@ -1,7 +1,6 @@
 package com.google.android.exoplayer2.videobench;
 
 import android.Manifest;
-import android.app.backup.BackupHelper;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
@@ -19,11 +18,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.app.DownloadManager;
 
-import java.io.File;
-import java.util.Arrays;
 import android.database.Cursor;
 import android.util.Log;
-import android.content.SharedPreferences;
 
 public class DownloadActivity extends Activity {
 
@@ -42,7 +38,6 @@ public class DownloadActivity extends Activity {
     private Handler handler;
     private Runnable callback;
     private DownloadManager downloadManager;
-    private SharedPreferences pref;
 
     public static final int STORAGE_REQUEST = 1;
 
@@ -63,7 +58,6 @@ public class DownloadActivity extends Activity {
         downloadID = -1;
         fq_localname = Utilities.getLocalName(localname);
         downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-        pref = getSharedPreferences("VideoBenchmarkFiles", MODE_PRIVATE);
         handler = new Handler();
         callback = new Runnable() {
             @Override
@@ -145,13 +139,11 @@ public class DownloadActivity extends Activity {
                             break;
                         case DownloadManager.STATUS_SUCCESSFUL:
                             Log.i(TAG, "complete localname="+localname);
-                            set_status(2);
                             finish();
                             break;
                     }
                     addConsoleOutput(statusText);
                     if (status != DownloadManager.STATUS_RUNNING) {
-                        set_status(0);
                         addConsoleOutput(reasonText);
                         Log.i(TAG, statusText + " : " + reasonText);
                     } else {
@@ -183,12 +175,6 @@ public class DownloadActivity extends Activity {
         super.onResume();
     }
 
-    private void set_status(long status) {
-        SharedPreferences.Editor ed = pref.edit();
-        ed.putLong(localname,status);
-        ed.apply();
-    }
-
     protected void startDownload() {
         // Check if download is in progress
         String local_uri = Uri.fromFile(new java.io.File(fq_localname)).toString();
@@ -216,7 +202,6 @@ public class DownloadActivity extends Activity {
             request.setNotificationVisibility(1);
             request.setVisibleInDownloadsUi(true);
             downloadID = downloadManager.enqueue(request);
-            set_status(1);
         }
         // Start the initial runnable task by posting through the handler
         handler.post(callback);
