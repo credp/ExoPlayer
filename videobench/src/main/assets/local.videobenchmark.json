@@ -4,8 +4,8 @@
     "samples": [
       {
         "name": "Play MP3 Sample",
-        "uri": "https://freemusicarchive.org/music/download/b96a54cd6493df22ca864d5c228d42d23246f4fa",
-        "localname": "eigenvalue_subspace_decomposition.mp3"
+        "uri": "http://www.mfiles.co.uk/mp3-downloads/Toccata-and-Fugue-Dm.mp3",
+        "localname": "toccata.mp3"
       },
       {
         "name": "Play H264 Big Buck Bunny (1080p)",
