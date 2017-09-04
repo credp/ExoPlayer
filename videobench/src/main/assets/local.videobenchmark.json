@@ -11,6 +11,16 @@
         "name": "Play H264 Big Buck Bunny (1080p)",
         "uri": "http://distribution.bbb3d.renderfarming.net/video/mp4/bbb_sunflower_1080p_30fps_normal.mp4",
         "localname": "bbb1080p.mp4"
+      },
+      {
+        "name": "Play avi Big Buck Bunny (720p)",
+        "uri": "http://distribution.bbb3d.renderfarming.net/video/mp4/big_buck_bunny_720p_surround.avi",
+        "localname": "bbb720p.avi"
+      },
+      {
+        "name": "Play avi Big Buck Bunny (480p)",
+        "uri": "http://distribution.bbb3d.renderfarming.net/video/mp4/big_buck_bunny_480p_surround-fix.avi",
+        "localname": "bbb480p.avi"
       }
     ]
   }
